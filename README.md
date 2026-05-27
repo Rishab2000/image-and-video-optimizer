@@ -125,6 +125,8 @@ IMAGES
 ```
 
 ---
+## Results
+<img width="568" height="580" alt="Screenshot 2026-05-27 at 10 02 13" src="https://github.com/user-attachments/assets/a211d3b4-bbec-4a2f-a904-658e9dea9544" />
 
 ## Notes
 
