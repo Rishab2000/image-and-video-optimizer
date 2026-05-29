@@ -4,6 +4,11 @@ import subprocess
 from pathlib import Path
 from datetime import datetime
 
+try:
+    from tqdm import tqdm
+except ImportError:
+    tqdm = None
+
 # ── Configuration ──────────────────────────────────────────────────────────────
 input_dir        = "."
 image_output_dir = "webp_output"
@@ -58,7 +63,6 @@ def copy_metadata(source_path, dest_path):
         ], check=True, capture_output=True)
         return True
     except subprocess.CalledProcessError:
-        print(f"  Warning: Could not copy metadata for {source_path.name}")
         return False
 
 def get_unique_output_path(base_path, out_dir, ext):
@@ -78,8 +82,7 @@ def convert_heic_to_jpeg(heic_path, jpeg_path):
             check=True, capture_output=True
         )
         return True
-    except subprocess.CalledProcessError as e:
-        print(f"  Error converting HEIC to JPEG: {e}")
+    except subprocess.CalledProcessError:
         return False
 
 def convert_image(img_path, has_exiftool):
@@ -114,21 +117,15 @@ def convert_image(img_path, has_exiftool):
             record["metadata_ok"] = copy_metadata(img_path, output_path)
 
         record["status"] = "OK"
-        label = f"  ✓ {img_path.name} → {output_path.name}"
-        if renamed:
-            label += "  (renamed to avoid duplicate)"
-        print(label)
 
     except subprocess.CalledProcessError as e:
         record["status"] = "FAILED"
         record["output"] = None
         record["error"] = e.stderr.decode().strip() if e.stderr else str(e)
-        print(f"  ✗ {img_path.name} — conversion failed")
     except Exception as e:
         record["status"] = "FAILED"
         record["output"] = None
         record["error"] = str(e)
-        print(f"  ✗ {img_path.name} — {e}")
 
     return record
 
@@ -160,10 +157,6 @@ def convert_video(vid_path, has_exiftool):
             record["metadata_ok"] = copy_metadata(vid_path, output_path)
 
         record["status"] = "OK"
-        label = f"  ✓ {vid_path.name} → {output_path.name}"
-        if renamed:
-            label += "  (renamed to avoid duplicate)"
-        print(label)
 
     except subprocess.CalledProcessError as e:
         record["status"] = "FAILED"
@@ -172,12 +165,10 @@ def convert_video(vid_path, has_exiftool):
         # Clean up partial output file if ffmpeg created one
         if output_path.exists():
             output_path.unlink()
-        print(f"  ✗ {vid_path.name} — conversion failed")
     except Exception as e:
         record["status"] = "FAILED"
         record["output"] = None
         record["error"] = str(e)
-        print(f"  ✗ {vid_path.name} — {e}")
 
     return record
 
@@ -263,12 +254,14 @@ video_results = []
 
 if image_files:
     print("── Images ────────────────────────────────────────────────────")
-    for img_path in image_files:
+    iterator = tqdm(image_files, desc="Images", unit="file") if tqdm else image_files
+    for img_path in iterator:
         image_results.append(convert_image(img_path, has_exiftool))
 
 if video_files:
     print("\n── Videos ────────────────────────────────────────────────────")
-    for vid_path in video_files:
+    iterator = tqdm(video_files, desc="Videos", unit="file") if tqdm else video_files
+    for vid_path in iterator:
         video_results.append(convert_video(vid_path, has_exiftool))
 
 all_results = image_results + video_results
