@@ -10,6 +10,7 @@ A Python script that batch converts images to WebP and videos to HEVC (H.265), r
 - Converts videos to **HEVC / H.265 MP4** at CRF 28 (configurable)
 - Preserves all original metadata (EXIF, date taken, GPS, etc.)
 - Never overwrites files — duplicates are automatically renamed
+- Shows a live progress bar during conversion
 - Writes a `conversion_log.txt` so you can verify nothing was lost
 
 ---
@@ -23,13 +24,16 @@ A Python script that batch converts images to WebP and videos to HEVC (H.265), r
 | `ffmpeg` | Convert videos to HEVC | `brew install ffmpeg` |
 | `exiftool` | Preserve metadata | `brew install exiftool` |
 | `sips` | Decode RAW / HEIC images | Pre-installed on macOS |
+| `tqdm` | Progress bar | `pip3 install tqdm` |
 
 Install all at once:
 ```bash
-brew install webp ffmpeg exiftool
+brew install webp ffmpeg exiftool && pip3 install tqdm
 ```
 
 > `exiftool` is optional but strongly recommended — without it, metadata (date taken, GPS, camera info) will not be copied to the output files.
+
+> `tqdm` is optional — if not installed, the script runs normally without a progress bar.
 
 ---
 
